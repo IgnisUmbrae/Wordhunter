@@ -1,4 +1,4 @@
-import re
+﻿import re
 import random
 
 from formatting import embolden, listtostr
