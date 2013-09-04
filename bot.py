@@ -204,7 +204,7 @@ class WHBot(SingleServerIRCBot):
 		regex, announce, involved_letters = round(randword,difficulty)
 		
 		self.possible_words = filter(regex.match,self.words)
-		if random.randint(1,3) == 1:
+		if random.randint(1,4) == 1:
 			modifier_name = random.choice(self.modifiers.keys())
 			modifier = self.modifiers[modifier_name]
 			mod_regex, mod_announce = modifier(randword,round_name,involved_letters,difficulty)
@@ -218,16 +218,17 @@ class WHBot(SingleServerIRCBot):
 		if len(self.possible_words) == 0:
 			print >> sys.stderr, "Puzzle not soluble! Generating another."
 			self.new_puzzle()
-		self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if (regex.match(k) and mod_regex.match(k)))
-		self.sorted_possible_scored_words = sorted(self.possible_scored_words.iteritems(), key=operator.itemgetter(1), reverse=True)
-		self.best_score = self.sorted_possible_scored_words[0][1]
-		self.best_words = [k for k, v in self.possible_scored_words.items() if v == self.best_score]
-		
-		self.reset_end_timer()
-		
-		self.guessing = True
-		
-		self.announce_puzzle(" ".join([announce,mod_announce]) if mod_announce else announce)
+		else:
+			self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if (regex.match(k) and mod_regex.match(k)))
+			self.sorted_possible_scored_words = sorted(self.possible_scored_words.iteritems(), key=operator.itemgetter(1), reverse=True)
+			self.best_score = self.sorted_possible_scored_words[0][1]
+			self.best_words = [k for k, v in self.possible_scored_words.items() if v == self.best_score]
+			
+			self.reset_end_timer()
+			
+			self.guessing = True
+			
+			self.announce_puzzle(" ".join([announce,mod_announce]) if mod_announce else announce)
 	
 	def announce_puzzle(self, announce):
 		self.output(" ".join([announce,chatter.STR_INIT_TIME]))
