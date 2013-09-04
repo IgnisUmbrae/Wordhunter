@@ -12,7 +12,7 @@ import sys
 import cfg, chatter
 from formatting import embolden
 
-# To do: letter omission as modifier, fix anagram text (if required), admin tools (maybe), persistent scoring across games
+# To do: fix anagram text (if required), admin tools (maybe), persistent scoring across games
 
 class WHBot(SingleServerIRCBot):
 	def __init__(self, channel, key, nickname, server, port=6667):
@@ -23,6 +23,7 @@ class WHBot(SingleServerIRCBot):
 		self.reset_vars()
 		self.load_assets()
 		self.load_rounds()
+		self.load_modifiers()
 		print >> sys.stderr, "Initialization complete"
 	
 	# Bot stuff.
@@ -38,17 +39,30 @@ class WHBot(SingleServerIRCBot):
 		self.streak = { "nick" : "", "num" : 0 }
 	
 	def load_rounds(self):
-		self.roundformats = []
+		self.roundformats = {}
 		roundfiles = glob.glob("rounds\*.py")
 		for f in roundfiles:
 			name = os.path.basename(f)[:-3]
 			try:
 				module = imp.load_source(name, f)
+				self.roundformats[name] = module.generate
 			except Exception, e:
 				print >> sys.stderr, "Error loading round '{}': {}".format(name, e)
 			else:
 				print "Loaded round format: {}".format(name)
-				self.roundformats.append(module.generate)
+	
+	def load_modifiers(self):
+		self.modifiers = {}
+		modfiles = glob.glob("modifiers\*.py")
+		for f in modfiles:
+			name = os.path.basename(f)[:-3]
+			try:
+				module = imp.load_source(name, f)
+				self.modifiers[name] = module.generate_mod
+			except Exception, e:
+				print >> sys.stderr, "Error loading modifier '{}': {}".format(name, e)
+			else:
+				print "Loaded modifier: {}".format(name)
 	
 	def load_assets(self):
 		with open('data\CSW12mw-wh.txt','r') as f:
@@ -185,15 +199,26 @@ class WHBot(SingleServerIRCBot):
 		randword = random.choice(self.words)
 		
 		#regex, announce = self.roundformats[-3](randword,difficulty)
-		regex, announce = random.choice(self.roundformats)(randword,difficulty)
+		round_name = random.choice(self.roundformats.keys())
+		round = self.roundformats[round_name]
+		regex, announce, involved_letters = round(randword,difficulty)
 		
 		self.possible_words = filter(regex.match,self.words)
+		if random.randint(1,3) == 1:
+			modifier_name = random.choice(self.modifiers.keys())
+			modifier = self.modifiers[modifier_name]
+			mod_regex, mod_announce = modifier(randword,round_name,involved_letters,difficulty)
+			if mod_regex: self.possible_words = filter(mod_regex.match,self.possible_words)
+		else:
+			mod_announce = ""
+			mod_regex = "^.*$"
+		
 		# This isn't entirely satisfactory, but it's the obvious way to ensure we always have a soluble puzzle.
 		# Casual observation suggests that insoluble puzzles are very rare, so this shouldn't be a problem.
 		if len(self.possible_words) == 0:
-			print >> stderr, "Puzzle not soluble! Generating another."
+			print >> sys.stderr, "Puzzle not soluble! Generating another."
 			self.new_puzzle()
-		self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if regex.match(k))
+		self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if (regex.match(k) and mod_regex.match(k)))
 		self.sorted_possible_scored_words = sorted(self.possible_scored_words.iteritems(), key=operator.itemgetter(1), reverse=True)
 		self.best_score = self.sorted_possible_scored_words[0][1]
 		self.best_words = [k for k, v in self.possible_scored_words.items() if v == self.best_score]
@@ -202,7 +227,7 @@ class WHBot(SingleServerIRCBot):
 		
 		self.guessing = True
 		
-		self.announce_puzzle(announce)
+		self.announce_puzzle(" ".join([announce,mod_announce]) if mod_announce else announce)
 	
 	def announce_puzzle(self, announce):
 		self.output(" ".join([announce,chatter.STR_INIT_TIME]))

@@ -16,4 +16,5 @@ def generate(word, difficulty):
 	#letters = sorted(map(lambda a: LETTERFREQS[a-1],list(set(random_partition(random.randint(1.5*26,3*26))))))
 	regex = "^[^"+"".join(letters)+"]*$"
 	str = STR_ANNOUNCE.format(listtostr(map(embolden,letters),conj="or"))
-	return re.compile(regex), str
+	involved_letters = set(letters)
+	return re.compile(regex), str, involved_letters

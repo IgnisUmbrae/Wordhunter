@@ -21,4 +21,5 @@ def generate(word, difficulty):
 	letters = discrete_sample(constants.VOWEL_FREQS,num_vowels)+discrete_sample(constants.CONS_FREQS,num_letters-num_vowels)
 	random.shuffle(letters)
 	str = STR_ANNOUNCE.format(embolden("".join(letters)))
-	return subanag_regex(letters), str
+	involved_letters = set(letters)
+	return subanag_regex(letters), str, involved_letters

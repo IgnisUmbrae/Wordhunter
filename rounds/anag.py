@@ -20,4 +20,5 @@ def generate(word, difficulty):
 	r = random.randint(0,hintamount)
 	hint = word[:r]+"*"*(len(word)-hintamount)+(word[-1*(hintamount-r):] if r != hintamount else "")
 	str = STR_ANNOUNCE.format(embolden(anag),embolden(hint))
-	return anag_regex(word), str
+	involved_letters = set(word)
+	return anag_regex(word), str, involved_letters

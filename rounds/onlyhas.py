@@ -1,7 +1,7 @@
 import re
 import random
 
-import constants
+#import constants
 from formatting import embolden, listtostr
 
 STR_ANNOUNCE = "Find a word that uses only the letters {}!"
@@ -24,4 +24,4 @@ def generate(word, difficulty):
 		else: letters.add(random.choice(list(unused_vowels)))
 	regex = re.compile("^["+"".join(letters)+"]*$")
 	str = STR_ANNOUNCE.format(listtostr(map(embolden,sorted(letters)),conj="or"))
-	return regex, str
+	return regex, str, letters

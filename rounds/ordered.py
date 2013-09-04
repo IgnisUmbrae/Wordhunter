@@ -9,4 +9,5 @@ def generate(word, difficulty):
 	block = [list(word)[i] for i in sorted(random.sample(xrange(len(list(word))),block_length))]
 	regex = re.compile("^.*"+".*".join(block)+".*$")
 	str = STR_ANNOUNCE.format(listtostr(map(embolden,block)))
-	return regex, str
+	involved_letters = set(block)
+	return regex, str, involved_letters

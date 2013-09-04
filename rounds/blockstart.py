@@ -10,4 +10,5 @@ def generate(word, difficulty):
 	block = word[pos:pos+block_length]
 	regex = re.compile("^"+block+".*$")
 	str = STR_ANNOUNCE.format(embolden(block))
-	return regex, str
+	involved_letters = set(block)
+	return regex, str, involved_letters
