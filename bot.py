@@ -211,7 +211,7 @@ class WHBot(SingleServerIRCBot):
 			if mod_regex: self.possible_words = filter(mod_regex.match,self.possible_words)
 		else:
 			mod_announce = ""
-			mod_regex = "^.*$"
+			mod_regex = re.compile("^.*$")
 		
 		# This isn't entirely satisfactory, but it's the obvious way to ensure we always have a soluble puzzle.
 		# Casual observation suggests that insoluble puzzles are very rare, so this shouldn't be a problem.
