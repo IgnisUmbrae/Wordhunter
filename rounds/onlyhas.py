@@ -22,6 +22,7 @@ def generate(word, difficulty):
 		unused_word_vowels = unused_vowels & word_letters
 		if len(unused_word_vowels) > 0: letters.add(random.choice(list(unused_word_vowels)))
 		else: letters.add(random.choice(list(unused_vowels)))
+	if "Q" in letters and "U" not in letters: letters.add("U")
 	regex = re.compile("^["+"".join(letters)+"]*$")
 	str = STR_ANNOUNCE.format(listtostr(map(embolden,sorted(letters)),conj="or"))
 	return regex, str, letters

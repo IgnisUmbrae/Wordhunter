@@ -3,7 +3,7 @@ import random
 
 from formatting import embolden, listtostr
 
-STR_ANNOUNCE_MOD = "You must use {}!"
+STR_ANNOUNCE_MOD = "Your word must include {}!"
 
 def generate_mod(word, round_name, involved_letters, difficulty):
 	num_letters = random.randint(1,2)
@@ -16,7 +16,7 @@ def generate_mod(word, round_name, involved_letters, difficulty):
 		regex = re.compile("^.*$")
 		str = ""
 	else:
-		letters = random.sample(possible_letters,num_letters)
+		letters = random.sample(possible_letters,num_letters) if num_letters < possible_letters else possible_letters
 		regex = re.compile("^.*(?:"+".*".join(letters)+("|"+".*".join(reversed(letters)) if len(letters) > 1 else "")+").*$")
 		str = STR_ANNOUNCE_MOD.format(listtostr(map(embolden,sorted(letters)),conj="and"))
 	return regex, str

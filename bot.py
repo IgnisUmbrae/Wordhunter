@@ -12,7 +12,7 @@ import sys
 import cfg, chatter
 from formatting import embolden
 
-# To do: fix anagram text (if required), admin tools (maybe), persistent scoring across games
+# To do: admin tools, persistent scoring across rounds, !introduction command, permit ties if the word submitted is different (optional extra togglable in cfg.py), abstract all game stuff away to a game class (in a separate file) and add ability to run on multiple servers/channels
 
 class WHBot(SingleServerIRCBot):
 	def __init__(self, channel, key, nickname, server, port=6667):
@@ -33,6 +33,7 @@ class WHBot(SingleServerIRCBot):
 		self.end_timer = None
 		self.playing = False
 		self.guessing = False
+		self.reset = False
 		self.reset_streak()
 		
 	def reset_streak(self):
@@ -43,13 +44,14 @@ class WHBot(SingleServerIRCBot):
 		roundfiles = glob.glob("rounds\*.py")
 		for f in roundfiles:
 			name = os.path.basename(f)[:-3]
-			try:
-				module = imp.load_source(name, f)
-				self.roundformats[name] = module.generate
-			except Exception, e:
-				print >> sys.stderr, "Error loading round '{}': {}".format(name, e)
-			else:
-				print "Loaded round format: {}".format(name)
+			if name not in cfg.EXCLUDE_ROUNDS:
+				try:
+					module = imp.load_source(name, f)
+					self.roundformats[name] = module.generate
+				except Exception, e:
+					print >> sys.stderr, "Error loading round '{}': {}".format(name, e)
+				else:
+					print "Loaded round format: {}".format(name)
 	
 	def load_modifiers(self):
 		self.modifiers = {}
@@ -65,10 +67,16 @@ class WHBot(SingleServerIRCBot):
 				print "Loaded modifier: {}".format(name)
 	
 	def load_assets(self):
+		print "Loading assets..."
 		with open('data\CSW12mw-wh.txt','r') as f:
+			print "	...word list"
 			self.words = map(lambda x: x.strip(), f.readlines())
 		with open('data\CSW12mw-wh-scores.txt','r') as f:
+			print "	...scores"
 			self.scores = map(lambda x: int(x.strip()), f.readlines())
+		with open('data\CSW12-defs.txt','r') as f:
+			print "	...definitions"
+			self.definitions = dict(map(lambda x: x.strip().split("\t",1),f.readlines()))
 		self.scored_words = dict(zip(self.words,self.scores))
 
 	def on_nicknameinuse(self, c, e):
@@ -116,10 +124,12 @@ class WHBot(SingleServerIRCBot):
 			streaker = self.winningnick
 		else:
 			msg = chatter.STR_NO_SUBMISSION
-			msg2 = chatter.STR_EG_WORD.format(*betterword)
+			if betterword[1] == self.best_score: msg2 = chatter.STR_EG_MAX.format(*betterword)
+			else: msg2 = chatter.STR_EG_WORD.format(*betterword)
 			streaker = None
 		if new_round: self.output(msg)
 		self.output(msg2)
+		self.define_word(betterword[0])
 		self.handle_streak(streaker)
 		if new_round: self.new_round()
 	
@@ -141,13 +151,21 @@ class WHBot(SingleServerIRCBot):
 		return chatter.STR_SECS_LEFT.format(self.time_left()) if self.time_left() > 1 else chatter.STR_ONE_SEC
 	
 	def time_left(self):
-		return int(round(cfg.ROUND_TIME - (time.time() - self.start_time)))
+		return int(round(((cfg.RESET_TIME if self.reset else cfg.ROUND_TIME) - (time.time() - self.start_time))))
+	
+	def new_end_timer(self):
+		if self.end_timer: self.end_timer.cancel()
+		self.end_timer = threading.Timer(cfg.ROUND_TIME,self.end_round)
+		self.end_timer.start()
+		self.start_time = time.time()
+		self.reset = False
 	
 	def reset_end_timer(self):
 		if self.end_timer: self.end_timer.cancel()
-		self.end_timer = threading.Timer(cfg.ROUND_TIME, self.end_round)
+		self.end_timer = threading.Timer(cfg.RESET_TIME,self.end_round)
 		self.end_timer.start()
 		self.start_time = time.time()
+		self.reset = True
 	
 	def submit_word(self, word, nick):
 		word = re.sub('[^a-zA-Z]','',word).upper()
@@ -155,6 +173,7 @@ class WHBot(SingleServerIRCBot):
 			self.output(chatter.NO_NESSES.format(nick))
 		elif word in self.best_words:
 			self.output(chatter.STR_GOT_MAX.format(nick,embolden(word),self.scored_words[word]))
+			self.define_word(word)
 			self.end_timer.cancel()
 			self.handle_streak(nick)
 			self.new_round()
@@ -177,8 +196,9 @@ class WHBot(SingleServerIRCBot):
 				self.winningnick = nick
 			else:
 				if word == self.winningword: msg = chatter.STR_NO_BEAT_SELF.format(nick)
-				else: poss = "your" if nick == self.winningnick else (self.winningnick + "'s")
-				msg = chatter.STRF_NO_BEAT_OTHER().format(embolden(word),str(score),poss,embolden(self.winningword),str(self.winningword_score)) + " " + self.time_warning()
+				else:
+					poss = "your" if nick == self.winningnick else (self.winningnick + "'s")
+					msg = chatter.STRF_NO_BEAT_OTHER().format(embolden(word),str(score),poss,embolden(self.winningword),str(self.winningword_score)) + " " + self.time_warning()
 			self.output(msg)
 			
 	def better_word(self):
@@ -189,6 +209,9 @@ class WHBot(SingleServerIRCBot):
 				break
 		next_best_pairs = [x for x in self.sorted_possible_scored_words if x[1] == next_best_score]
 		return random.choice(next_best_pairs)
+	
+	def define_word(self,word):
+		if word in self.definitions: self.output(": ".join([word,self.definitions[word]]))
 	
 	def new_puzzle(self):
 		self.winningword = ''
@@ -204,7 +227,7 @@ class WHBot(SingleServerIRCBot):
 		regex, announce, involved_letters = round(randword,difficulty)
 		
 		self.possible_words = filter(regex.match,self.words)
-		if random.randint(1,4) == 1:
+		if random.randint(1,3) == 1:
 			modifier_name = random.choice(self.modifiers.keys())
 			modifier = self.modifiers[modifier_name]
 			mod_regex, mod_announce = modifier(randword,round_name,involved_letters,difficulty)
@@ -224,7 +247,7 @@ class WHBot(SingleServerIRCBot):
 			self.best_score = self.sorted_possible_scored_words[0][1]
 			self.best_words = [k for k, v in self.possible_scored_words.items() if v == self.best_score]
 			
-			self.reset_end_timer()
+			self.new_end_timer()
 			
 			self.guessing = True
 			
@@ -248,7 +271,7 @@ class WHBot(SingleServerIRCBot):
 		self.reset_vars()
 
 def main():
-	bot = WHBot('##logophiles', '', 'Logolater', 'chat.freenode.net', 6667)
+	bot = WHBot(cfg.CHANNEL, cfg.KEY, cfg.NICK, cfg.SERVER, cfg.PORT)
 	bot.start()
 
 if __name__ == "__main__":
