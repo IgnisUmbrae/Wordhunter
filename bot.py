@@ -19,11 +19,12 @@ class WHBot(SingleServerIRCBot, WHGame):
 		self.load_assets()
 		self.load_rounds()
 		self.load_modifiers()
+		assert(self.roundformats)
 		print >> sys.stderr, "Initialization complete"
 		
 	def load_rounds(self):
 		self.roundformats = {}
-		roundfiles = glob.glob("rounds\*.py")
+		roundfiles = glob.glob("rounds/*.py")
 		for f in roundfiles:
 			name = os.path.basename(f)[:-3]
 			if name not in cfg.EXCLUDE_ROUNDS:
@@ -37,7 +38,7 @@ class WHBot(SingleServerIRCBot, WHGame):
 	
 	def load_modifiers(self):
 		self.modifiers = {}
-		modfiles = glob.glob("modifiers\*.py")
+		modfiles = glob.glob("modifiers/*.py")
 		for f in modfiles:
 			name = os.path.basename(f)[:-3]
 			try:
