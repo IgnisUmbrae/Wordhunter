@@ -68,13 +68,13 @@ class WHBot(SingleServerIRCBot):
 	
 	def load_assets(self):
 		print "Loading assets..."
-		with open('data\CSW12mw-wh.txt','r') as f:
+		with open(os.path.join('data','CSW12mw-wh.txt'),'r') as f:
 			print "	...word list"
 			self.words = map(lambda x: x.strip(), f.readlines())
-		with open('data\CSW12mw-wh-scores.txt','r') as f:
+		with open(os.path.join('data','CSW12mw-wh-scores.txt'),'r') as f:
 			print "	...scores"
 			self.scores = map(lambda x: int(x.strip()), f.readlines())
-		with open('data\CSW12-defs.txt','r') as f:
+		with open(os.path.join('data','CSW12-defs.txt'),'r') as f:
 			print "	...definitions"
 			self.definitions = dict(map(lambda x: x.strip().split("\t",1),f.readlines()))
 		self.scored_words = dict(zip(self.words,self.scores))
