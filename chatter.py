@@ -60,3 +60,4 @@ STR_FIRST_SCORE = "{} draws first blood!"
 def STRF_POS(pos,joint=False): return ("joint " if joint else "") + ORDINALS[pos]# + ("" if random.randint(0,1) == 0 else " place")
 def STRF_FALL_TO(pos,joint=False): return " ".join(["{}",random.choice(SYNS_FALLS),"to {}!".format(STRF_POS(pos,joint))])
 def STRF_HAS_POS(pos,joint=False): return " ".join(["{}","are" if joint else "is",STRF_POS(pos,joint),"with {}!"])
+STR_NO_SCORES = "Nobody managed even a single correct answer! What on earth were you all doing?!"

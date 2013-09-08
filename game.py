@@ -24,7 +24,7 @@ class WHGame():
 	def reset_vars(self):
 		self.new_timer = None
 		self.end_timer = None
-		self.podium_timer = None
+		#self.podium_timer = None
 		self.round_num = 0
 		self.set_default_params()
 		self.playing = False
@@ -121,7 +121,6 @@ class WHGame():
 		return merged_pos
 	
 	def get_rank_changes(self, old_merged, new_merged):
-		print old_merged, new_merged
 		if len(old_merged) != len(new_merged): return None
 		# Those with zero points are ranked -1 for later exclusion.
 		changes = [(x,self.merged_pos(x,old_merged) if self.oldscores[x] > 0 else -1,self.merged_pos(x,new_merged) if self.newscores[x] > 0 else -1) for x in self.newscores.keys()]
@@ -179,12 +178,14 @@ class WHGame():
 		joint_chatters = [chatter.STRF_JOINT_FIRST_POS,chatter.STRF_JOINT_SECOND_POS,chatter.STRF_JOINT_THIRD_POS]
 		new_merged = self.merge_scores(self.newscores)
 		top_three = self.get_top_three(new_merged)
-		for n in range(len(top_three)):
-			nicks = listtostr(top_three[n][0])
-			pos = self.merged_pos(top_three[n][0][0],new_merged)
-			if len(top_three[n][0]) > 1: chat = joint_chatters[pos]
-			else: chat = chatters[pos]
-			self.output(chat().format(nicks,self.newscores[top_three[n][0][0]]))
+		if top_three:
+			for n in range(len(top_three)):
+				nicks = listtostr(top_three[n][0])
+				pos = self.merged_pos(top_three[n][0][0],new_merged)
+				if len(top_three[n][0]) > 1: chat = joint_chatters[pos]
+				else: chat = chatters[pos]
+				self.output(chat().format(nicks,self.newscores[top_three[n][0][0]]))
+		else: self.output(chatter.STR_NO_SCORES)
 		self.stop_game(nick=None)
 
 	def time_warning(self):

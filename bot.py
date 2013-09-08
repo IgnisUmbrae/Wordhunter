@@ -12,7 +12,8 @@ from game import WHGame
 # - Introduction/rules command
 # - Permit ties if the word submitted is different (optional extra togglable in cfg.py)
 # - Add ability to run on multiple servers/channels, sanity checking (must have at least one round type, cannot pick from empty modifier list, etc.)
-# - Override round time as parameter to whstart
+# - Add ability to play forever
+# - Fix "1 seconds" text with absurdly low round times (1 or 2s)
 # - Scoring modifications: stop alerting (but keep scores of) people who haven't submitted words in N rounds (configurable); running commentary of changes in position in the top 3; announce top 3 at set intervals; command to check score; command to list top scores (within a certain stretch of time).
 # - Combine load_rounds and load_modifiers into a more generic function.
 

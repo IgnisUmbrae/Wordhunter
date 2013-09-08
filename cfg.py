@@ -26,5 +26,5 @@ EXCLUDE_MODIFIERS = []
 
 # Self-explanatory IRC-specific settings. KEY should be the empty string if the channel has none.
 SERVER, PORT = 'chat.freenode.net', 6667
-CHANNEL, KEY = '##testfacility', ''
+CHANNEL, KEY = '##logophiles', ''
 NICK = 'Logophile'
