@@ -16,7 +16,7 @@ def generate_mod(word, round_name, involved_letters, difficulty):
 		regex = re.compile("^.*$")
 		str = ""
 	else:
-		letters = random.sample(possible_letters,num_letters) if num_letters < len(possible_letters) else possible_letters
+		letters = random.sample(possible_letters,num_letters) if num_letters < len(possible_letters) else list(possible_letters)
 		regex = re.compile("^.*(?:"+".*".join(letters)+("|"+".*".join(reversed(letters)) if len(letters) > 1 else "")+").*$")
 		str = STR_ANNOUNCE_MOD.format(listtostr(map(embolden,sorted(letters)),conj="and"))
 	return regex, str
