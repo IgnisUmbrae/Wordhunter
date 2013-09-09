@@ -48,14 +48,14 @@ Future features
 
 Soon!
 
+Acknowledgements
+----------------
+
+I am much indebted to the inestimable **contingo**, not only for his many ideas and constant suggestions for improvement, but also for our many five-minute-cum-five-hour test sessions that have brought rafts of bugs to my attention. Long may they continue.
+
 Contributions
 -------------
 
 Until such time as the guide to writing extensions is complete, if you have a brilliant idea for a round format or modifier or any other such thing that you just can't contain, seek me out on freenode or submit a feature request and I'll see what I can do.
 
-If for some reason you still have time to earn money with the bot in your midst and you'd like to donate, you can do so on [Pledgie](http://pledgie.com/campaigns/21862) or [Gittip](https://www.gittip.com/IgnisUmbrae). Anything and everything is greatly appreciated — Wordhunter is a labour of love, but it isn't half a time-hungry one. Thanks!
-
-Acknowledgements
-----------------
-
-I am much indebted to the inestimable **contingo**, not only for his many ideas and constant suggestions for improvement, but also our many five-minute-cum-five-hour test sessions that have brought rafts of bugs to my attention. Long may they continue.
+If for some reason you still have time to earn money with the bot in your midst and you'd like to donate, you can do so on [Pledgie](http://pledgie.com/campaigns/21862) or [Gittip](https://www.gittip.com/IgnisUmbrae). Anything and everything is greatly appreciated — Wordhunter is a labour of love, but it isn't half a time-hungry one. Thank you.
