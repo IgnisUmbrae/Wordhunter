@@ -20,7 +20,7 @@ def generate_modifier(word, round_name, involved_letters, difficulty):
 		twodupes = [y[0:2] for y in [[i for i in range(len(word)) if word[i] == x] for x in set(word)] if len(y) > 1]
 	if twodupes:
 		# Purely random choice often forces players to seek extraordinarily long words, so we minimize the forced word length.
-		dupe = min(twodupes,key=max)
+		dupe = min(twodupes, key=max)
 		regex = re.compile("".join(["^","."*dupe[0],"(.)","."*(dupe[1] - dupe[0] - 1),r"\1"]))
 		str = STR_ANNOUNCE_MOD.format(ORDINALS[dupe[0]],ORDINALS[dupe[1]])
 	else:
