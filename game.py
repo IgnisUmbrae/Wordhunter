@@ -4,7 +4,6 @@ import threading
 import time
 import sys
 from operator import itemgetter
-from collections import OrderedDict
 
 import cfg, chatter
 from formatting import embolden, listtostr
@@ -34,7 +33,7 @@ class WHGame():
 		self.reset_scores()
 
 	def reset_streak(self):
-		self.streak = {"nick" : "", "num" : 0 }
+		self.streak = {"nick" : "", "num" : 0}
 		
 	def reset_scores(self):
 		self.newscores = {}
@@ -264,8 +263,8 @@ class WHGame():
 		difficulty = 0 # Not yet implemented
 		randword = random.choice(self.words)
 		
-		round_name = random.choice(self.roundformats.keys())
-		round = self.roundformats[round_name]
+		round_name = random.choice(self.rounds.keys())
+		round = self.rounds[round_name]
 		regex, announce, involved_letters = round(randword,difficulty)
 		
 		self.possible_words = filter(regex.match,self.words)
@@ -276,7 +275,7 @@ class WHGame():
 			if mod_regex: self.possible_words = filter(mod_regex.match,self.possible_words)
 		else:
 			mod_announce = ""
-			mod_regex = re.compile("^.*$")
+			mod_regex = None
 		
 		# This isn't entirely satisfactory, but it's the obvious way to ensure we always have a soluble puzzle.
 		# Casual observation suggests that insoluble puzzles are very rare, so this shouldn't be a problem.
@@ -285,7 +284,10 @@ class WHGame():
 			self.new_puzzle()
 		else:
 			self.round_num += 1
-			self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if (regex.match(k) and mod_regex.match(k)))
+			if mod_regex:
+				self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if (regex.match(k) and mod_regex.match(k)))
+			else:
+				self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if regex.match(k))
 			self.sorted_possible_scored_words = sorted(self.possible_scored_words.iteritems(), key=itemgetter(1), reverse=True)
 			self.best_score = self.sorted_possible_scored_words[0][1]
 			self.best_words = [k for k, v in self.possible_scored_words.items() if v == self.best_score]

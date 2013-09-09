@@ -12,10 +12,13 @@ from game import WHGame
 # - Introduction/rules command
 # - Permit ties if the word submitted is different (optional extra togglable in cfg.py)
 # - Add ability to run on multiple servers/channels, sanity checking (must have at least one round type, cannot pick from empty modifier list, etc.)
-# - Add ability to play forever
-# - Fix "1 seconds" text with absurdly low round times (1 or 2s)
-# - Scoring modifications: stop alerting (but keep scores of) people who haven't submitted words in N rounds (configurable); running commentary of changes in position in the top 3; announce top 3 at set intervals; command to check score; command to list top scores (within a certain stretch of time).
-# - Combine load_rounds and load_modifiers into a more generic function.
+# - Add ability to play forever (specify n=0) --- in this case spill the top three on !whstop.
+# - Separate scoring code from game code
+# - Redo the -NESS(ES) removal script to be morphologically aware, so that words like LIONESS and WITNESS aren't unfairly excluded.
+# - Anagram-round-esque hint + definition -> word round
+# - Fix "1 seconds" text with absurdly low round (hence reset) times (1 or 2s)
+# - Scoring modifications: stop alerting (but keep scores of) people who haven't submitted words in N rounds (configurable); running commentary of changes in position in the top 3; announce top 3 at set intervals (configurable); command to check score; command to list top scores (within a certain stretch of time).
+# - Multiple modifiers per round? (Might lead to some nasty circular dependencies.)
 
 class WHBot(SingleServerIRCBot, WHGame):
 	valid_params = {"n" : "num_rounds", "t" : "round_time"}
@@ -24,42 +27,29 @@ class WHBot(SingleServerIRCBot, WHGame):
 	def __init__(self, channel, key, nickname, server, port=6667):
 		SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
 		WHGame.__init__(self)
-		print >> sys.stderr, "Initializing"
+		print "Initializing"
 		self.channel = channel
 		self.key = key
 		self.load_assets()
-		self.load_rounds()
-		self.load_modifiers()
-		assert(self.roundformats)
-		print >> sys.stderr, "Initialization complete"
-		
-	def load_rounds(self):
-		self.roundformats = {}
-		roundfiles = glob.glob(os.path.join("rounds","*.py"))
+		self.load_plugins("round")
+		self.load_plugins("modifier")
+		assert(self.rounds)
+		print "Initialization complete"
+	
+	def load_plugins(self,type):
+		types = type+"s"
+		setattr(self,types,{})
+		roundfiles = glob.glob(os.path.join(types,"*.py"))
 		for f in roundfiles:
 			name = os.path.basename(f)[:-3]
-			if name not in cfg.EXCLUDE_ROUNDS:
+			if name not in getattr(cfg,"EXCLUDE_"+types.upper()):
 				try:
 					module = imp.load_source(name, f)
-					self.roundformats[name] = module.generate
+					getattr(self,types)[name] = getattr(module,"generate_"+type)
 				except Exception, e:
-					print >> sys.stderr, "Error loading round '{}': {}".format(name, e)
+					print >> sys.stderr, "Error loading {} '{}': {}".format(type,name,e)
 				else:
-					print "Loaded round format: {}".format(name)
-	
-	def load_modifiers(self):
-		self.modifiers = {}
-		modfiles = glob.glob(os.path.join("modifiers","*.py"))
-		for f in modfiles:
-			name = os.path.basename(f)[:-3]
-			if name not in cfg.EXCLUDE_MODIFIERS:
-				try:
-					module = imp.load_source(name, f)
-					self.modifiers[name] = module.generate_mod
-				except Exception, e:
-					print >> sys.stderr, "Error loading modifier '{}': {}".format(name, e)
-				else:
-					print "Loaded modifier: {}".format(name)
+					print "Loaded {}: {}".format(type,name)
 	
 	def load_assets(self):
 		print "Loading assets..."

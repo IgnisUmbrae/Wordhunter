@@ -1,7 +1,6 @@
 import cfg
 import random
-
-ORDINALS = ["first","second","third","fourth","fifth","sixth","seventh","eighth","ninth","tenth"]
+from constants import ORDINALS
 
 SYNS_BEAT = ["beat", "outdo", "topple", "fell", "oust"]
 SYNS_DESTROYS = ["smashes", "destroys", "wipes the floor with", "trounces", "crushes", "annihilates", "decimates", "obliterates"]
@@ -25,7 +24,7 @@ STR_NOT_PLAYING = "We aren't playing, {}."
 STR_NO_NESSES = "Sorry, {}, but all words in -ness(es) are banned."
 STR_INIT_TIME = "You have {} seconds!"
 STR_NEW_ROUND = "Next round in {} seconds...".format(cfg.NEW_TIME)
-STR_ROUND_NUM = "Round {}/{}."
+STR_ROUND_NUM = "Round {} of {}."
 STR_ROUND_FINAL = "Final round!"
 STR_SCORE_PRELUDE = "Stand by for the final scores!"
 STR_WINNING_WORD = "Time's up! The winning word was {}'s {} for {} points!"

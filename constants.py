@@ -6,6 +6,7 @@ CONS_FREQS = [("B",1.5/57.919),("C",2.8/57.919),("D",4.3/57.919),("F",2.2/57.919
 ALPHABET = set([chr(i) for i in range(65,90)])
 
 NUM_TIMES = ["zero times","once","twice","thrice"]
+ORDINALS = ["first","second","third","fourth","fifth","sixth","seventh","eighth","ninth","tenth","eleventh","twelfth","thirteenth","fourteenth","fifteenth","sixteenth","seventeenth","eighteenth","nineteenth","twentieth","twenty-first","twenty-second","twenty-third","twenty-fourth","twenty-fifth","twenty-sixth","twenty-seventh","twenty-eighth","twenty-ninth","thirtieth"]
 
 def calc_score(word):
 	score = 0

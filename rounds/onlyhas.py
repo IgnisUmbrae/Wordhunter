@@ -8,7 +8,7 @@ STR_ANNOUNCE = "Find a word that uses only the letters {}!"
 
 VOWELS = set(["A","E","I","O","U"])
 
-def generate(word, difficulty):
+def generate_round(word, difficulty):
 	#num_letters = random.randint(5,8)
 	#num_vowels = min(random.randint(2,3),int(round(num_letters/2.5)))
 	#letters = discrete_sample(constants.VOWEL_FREQS,num_vowels)+discrete_sample(constants.CONS_FREQS,num_letters-num_vowels)
@@ -25,4 +25,5 @@ def generate(word, difficulty):
 	if "Q" in letters and "U" not in letters: letters.add("U")
 	regex = re.compile("^["+"".join(letters)+"]*$")
 	str = STR_ANNOUNCE.format(listtostr(map(embolden,sorted(letters)),conj="or"))
-	return regex, str, letters
+	involved_letters = "".join(letters)
+	return regex, str, involved_letters
