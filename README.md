@@ -4,7 +4,7 @@
 About
 -----
 
-Wordhunter is an IRC bot that hosts a fiercely competitive and Ruinously Addictive™ word game based on the idea of 'hunting' the best words that fit certain criteria. Each word is worth its score in Scrabble plus its length, and it falls to you and your fellow competitors to find the best of the bunch. Here are some sample challenges, with round and modifier names in parentheses (mouse over the links for example solutions):
+Wordhunter is an IRC bot that hosts a Fiercely Competitive and Ruinously Addictive™ word game based on the idea of 'hunting' the best words that fit certain criteria. Each word is worth its score in Scrabble plus its length, and it falls to you and your fellow competitors to find the best of the bunch. Here are some sample challenges, with round and modifier names in parentheses (mouse over the links for example solutions):
 
 - Words that contain ICE but exclude A and T (blockend+exclude) ⇒ [Possible solution](# "POLICEWOMEN for 31")
 - Subanagrams of IEGSTTPETMNN whose third and fourth letters are the same (subanag+same) ⇒ [Possible solution](# "PETTINGS for 19")
@@ -19,8 +19,8 @@ Features
 
 - Stunning two-tier gameplay! In the struggle for points and ultimate lexical supremacy, will you turn to length or to letter rarity?
 - Stunning educational value! Unless you manage the top-scorer, Wordhunter suggests the next best word for you, complete with definition!*
-- Stunning default bank of nine round formats and four modifiers with easy extensibility!
-- Soon: Stunning running commentary of multiplayer games!
+- Stunning default bank of ten round formats and four modifiers with easy extensibility!
+- Stunning running commentary of multiplayer games! (WIP)
 
 *Most of the time, at least. Some words aren't defined yet.
 
@@ -36,7 +36,7 @@ Basic usage
 
 Once you have your hands on the code, it's time to edit `cfg.py`. IRC-specific settings are nestled away at the bottom; all others pertain to the game itself. When you're done tinkering, run `bot.py` to begin.
 
-At present, Wordhunter has but two commands, all elements of which are configurable: the defaults are `!whstart n=# t=#`, to start a game, and `!whstop`, to end it early. The optional parameters `n` and `t` respectively specify the number of rounds to play and the number of seconds each round lasts, may appear in any order and override the defaults in `cfg.py` if provided. So if you'd like to play a 20-round game with 30 seconds per round, you could issue the command `!whstart n=20 t=30`.
+At present, Wordhunter has but two commands, all elements of which are configurable: the defaults are `!whstart n=# t=#`, to start a game, and `!whstop`, to end it early. The optional parameters `n` and `t` respectively specify the number of rounds to play and the number of seconds each round lasts, may appear in any order and override the defaults in `cfg.py` if provided. So if you'd like to play a 20-round game with 30 seconds per round, you could issue the command `!whstart n=20 t=30`. Specifying `n=0` starts Eternal Mode.
 
 Writing extensions
 ------------------
@@ -46,7 +46,7 @@ Soon!
 Future features
 ---------------
 
-- Completed Future Features section
+- Completed 'Future features' section
 
 Acknowledgements
 ----------------
