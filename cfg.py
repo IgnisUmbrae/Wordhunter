@@ -6,6 +6,8 @@ RESET_TIME = ROUND_TIME/2
 FINAL_SCORE_DELAY = RESET_TIME/2
 # Default number of rounds to play each game. Can be overridden by passing n=# with the start command.
 NUM_ROUNDS = 15
+# Number of times to announce the top scorers each game, distributed evenly over all rounds.
+SCORE_ANNOUNCE_NUM = 5
 # On average, one in every MODIFIER_CHANCE rounds has a modifier, though implementation details mean the actual average is slightly less. Set to 0 to disable modifiers altogether.
 MODIFIER_CHANCE = 3
 # Maximum number of rounds a player may go without submitting a word before they are considered idle.
@@ -14,15 +16,18 @@ MAX_IDLE_ROUNDS = 4
 STREAK_BONUS = 4
 # Number of seconds to wait between rounds.
 NEW_TIME = 10
+# Enable or disable dynamic anagram hints.
+ANAG_HINTS = False
+# List of round formats that should not be loaded.
+EXCLUDE_ROUNDS = ["exclude"]#,"blockbeginend","blockend","blockmiddle","blockstart","onlyhas","ordered","subanag"]
+# List of modifiers that should not be loaded.
+EXCLUDE_MODIFIERS = []
+
 # Symbol(s) prefacing all commands (see below).
 COMMAND_PREFIX = "!"
 # Specific names of various commands.
 START_COMMAND = "whstart"
 STOP_COMMAND = "whstop"
-# List of round formats that should not be loaded.
-EXCLUDE_ROUNDS = ["exclude"]
-# List of modifiers that should not be loaded.
-EXCLUDE_MODIFIERS = []
 
 # Self-explanatory IRC-specific settings. KEY should be the empty string if the channel has none.
 SERVER, PORT = 'chat.freenode.net', 6667

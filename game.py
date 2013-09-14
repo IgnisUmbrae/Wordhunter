@@ -46,10 +46,13 @@ class WHGame():
 		self.guessing = False
 		if self.round_num == self.num_rounds:
 			self.final_scores()
+			self.stop_game(nick=None)
 			#self.output(chatter.STR_SCORE_PRELUDE)
 			#self.podium_timer = threading.Timer(cfg.FINAL_SCORE_DELAY, self.final_scores)
 		else:
-			self.output(chatter.STR_NEW_ROUND)
+			if self.num_rounds > 0: message = chatter.STR_NEW_ROUND
+			else: message = chatter.STR_NEW_ROUND_UNLIMITED
+			self.output(message)
 			self.new_timer = threading.Timer(cfg.NEW_TIME, self.new_puzzle)
 			self.new_timer.start()
 	
@@ -70,6 +73,7 @@ class WHGame():
 		self.define_word(betterword[0])
 		bonus = self.handle_streak(streaker)
 		self.add_score(self.winningnick,self.winningword_score+bonus)
+		if streaker: self.comment_score(self.winningnick)
 		if new_round: self.new_round()
 	
 	def handle_streak(self, nick=None): #Pass nick=None to reset the streak after an unanswered round.
@@ -92,15 +96,15 @@ class WHGame():
 			self.reset_streak()
 		return 0
 	
-	def merge_scores(self,list):
+	def merge_data(self,list,pos): #When merging rank changes, use pos=1 for origin, 2 for destination
 		merged, used = [], []
-		list = sorted(list.iteritems(),key=itemgetter(1),reverse=True)
+		list = sorted(list,key=itemgetter(pos),reverse=True)
 		for n in range(0,len(list)):
 			nick = list[n][0]
 			if nick not in used:
-				score = list[n][1]
+				score = list[n][pos]
 				o, k = [], n
-				while k < len(list) and list[k][1] == score:
+				while k < len(list) and list[k][pos] == score:
 					used.append(list[k][0])
 					o.append(list[k][0])
 					k += 1
@@ -108,7 +112,7 @@ class WHGame():
 		return merged
 	
 	def get_top_three(self, mergeds):
-		# Calculate the top three, taking ties into account.
+		# Calculate the top three, taking joint positions into account.
 		top_three = [mergeds[0:i] for i in range(len(mergeds)+1) if sum(map(lambda x: len(x[0]),mergeds[0:i])) >= 3]
 		top_three = top_three[0] if top_three else mergeds
 		# Discard those with no score.
@@ -120,62 +124,71 @@ class WHGame():
 		return merged_pos
 	
 	def get_rank_changes(self, old_merged, new_merged):
-		if len(old_merged) != len(new_merged): return None
-		# Those with zero points are ranked -1 for later exclusion.
-		changes = [(x,self.merged_pos(x,old_merged) if self.oldscores[x] > 0 else -1,self.merged_pos(x,new_merged) if self.newscores[x] > 0 else -1) for x in self.newscores.keys()]
+		# Those with zero points are ranked +inf for later exclusion.
+		changes = [(x,self.merged_pos(x,old_merged) if self.oldscores[x] > 0 else float('inf'),self.merged_pos(x,new_merged) if self.newscores[x] > 0 else float('inf')) for x in self.newscores.keys()]
 		# Ignore changes that don't affect the top three in some way.
-		return [x for x in changes if (x[1] <= 2 or x[2] <= 2) and not (x[1] == -1 and x[2] == -1)]
+		return [x for x in changes if x[1] <= 2 or x[2] <= 2]
+	
+	def get_move_text(self,dir,movers,destposnicks,destpos):
+		verb = random.choice(chatter.SYNS_FALL_TO if dir == 0 else chatter.SYNS_RISE_TO)
+		verb = verb.format("" if len(movers) > 1 else "s")
+		if len(destposnicks) > 1 and destposnicks != movers:
+			destposnicks = sorted(set(destposnicks) - set(movers))
+			extra = " ".join([" with",listtostr(destposnicks)])
+		else: extra = ""
+		fragment = " ".join([listtostr(sorted(movers)),verb,chatter.STRF_POS(destpos,bool(extra))])
+		return "".join([fragment,extra]) + "!"
+
+	def get_stay_text(self,movers,pos):
+		verb = random.choice(chatter.SYNS_KEEP).format("" if len(movers) > 1 else "s")
+		return " ".join([listtostr(sorted(movers)),verb,chatter.STRF_POS(pos,len(movers) > 1)]) + "."
+	
+	def get_strengthen_text(self, winner, pos):
+		return chatter.STRF_STRENGTHENS_POS(pos).format(winner)
 	
 	def add_score(self, nick, points):
-		def co_scorers(nick, mergeds):
-			return [x[0] for x in mergeds if nick in x[0][0]][0]
-			
-		def is_tied(nick, mergeds): return len(co_scorers(nick,mergeds)) > 1
+		self.oldscores = dict(self.newscores) #Ensure dict is *copied*
+		if nick: self.newscores[nick] += points
+	
+	def comment_score(self,winner):
+		def coscorers(nick, mergeds):
+			return [x[0] for x in mergeds if nick in x[0]][0]
 
-		if nick:
-			self.oldscores = dict(self.newscores) #Ensure dict is *copied*
-			self.newscores[nick] += points
-		
-		old_merged = self.merge_scores(self.oldscores)
-		new_merged = self.merge_scores(self.newscores)
-		rank_changes = self.get_rank_changes(old_merged,new_merged)
-		top_three = self.get_top_three(new_merged)
-		
-		# Potentially good idea: generate a list of possible pieces of commentary and output the highest priority/most important one(s).
-		
-		
-		# if rank_changes:
-			# for x in rank_changes:
-				# if x[1] == 0:
-					# if x[0] == 0: #No change in first place.
-						# if topthree[0][0] == nick:
-							# if len(topthree) > 1: lead = topthree[0][1] - topthree[1][1]
-							# else: lead = topthree[0][1]
-							# self.output(chatter.STR_INCREASE_LEAD.format(nick,lead))
-						# else: self.output(chatter.STR_STILL_AHEAD.format(topthree[0][0],topthree[0][1]))
-					# else: #Someone's taken first place!
-						# newleader = topthree[0][0]
-						# oldleader = topthree[x[0]][0]
-						# self.output(chatter.STRF_TAKES_POS(0).format(newleader))
-				# elif x[1] == 1:
-					# if x[0] < 1: #First has fallen to second!
-						# pass
-					# elif x[0] > 1: #Someone's taken second place!
-						# pass
-				# elif x[1] == 2:
-					# if x[0] < 2: #First or second has fallen to third!
-						# pass
-					# elif x[0] > 2: #Someone's taken third place!
-						# pass
-				# elif x[1] > 2: #Someone's fallen out of the top three!
-					# pass
-		
-			#self.dump_scores()
+		if self.round_num != self.num_rounds:
+			
+			old_merged = self.merge_data(self.oldscores.iteritems(),pos=1)
+			new_merged = self.merge_data(self.newscores.iteritems(),pos=1)
+			rank_changes = self.get_rank_changes(old_merged,new_merged)
+
+			messages, used = [], []
+			if len(rank_changes) == 1 and rank_changes[0][1] == float("inf"): # First score of the game
+				message = chatter.STR_FIRST_SCORE.format(rank_changes[0][0])
+			else: 
+				for x in rank_changes:
+					nick = x[0]
+					if nick not in used:
+						oldconicks, newconicks = coscorers(x[0],old_merged), coscorers(x[0],new_merged)
+						movers = [r[0] for r in rank_changes if r[1:] == x[1:]]
+						used += movers + newconicks
+						if x[1] != x[2] or len(oldconicks) > 1: # Movers and shakers (including those moving out of joint positions)
+							dir = int(x[2] <= x[1]) # 1 for upward movement, 0 for downward
+							# The first element of these message tuples is the priority (lower=higher priority).
+							messages.append((0,x[2],self.get_move_text(dir,movers,newconicks,x[2])))
+							used += newconicks
+						else: # Sitting pretty
+							if len(movers) == 1 and movers[0] == winner:
+								messages.append((1,x[2],self.get_strengthen_text(winner,x[1])))
+							else: messages.append((2,x[2],self.get_stay_text(movers,x[1])))
+				messages = sorted(messages,key=itemgetter(0,1))
+				message = " ".join(map(itemgetter(2),messages))
+			
+			self.output(message)
 	
 	def final_scores(self):
+		self.output(chatter.STR_GAME_OVER)
 		chatters = [chatter.STRF_FIRST_POS,chatter.STRF_SECOND_POS,chatter.STRF_THIRD_POS]
 		joint_chatters = [chatter.STRF_JOINT_FIRST_POS,chatter.STRF_JOINT_SECOND_POS,chatter.STRF_JOINT_THIRD_POS]
-		new_merged = self.merge_scores(self.newscores)
+		new_merged = self.merge_data(self.newscores.iteritems(),pos=1)
 		top_three = self.get_top_three(new_merged)
 		if top_three:
 			for n in range(len(top_three)):
@@ -185,7 +198,6 @@ class WHGame():
 				else: chat = chatters[pos]
 				self.output(chat().format(nicks,self.newscores[top_three[n][0][0]]))
 		else: self.output(chatter.STR_NO_SCORES)
-		self.stop_game(nick=None)
 
 	def time_warning(self):
 		return chatter.STR_SECS_LEFT.format(self.time_left()) if self.time_left() > 1 else chatter.STR_ONE_SEC
@@ -218,6 +230,7 @@ class WHGame():
 			self.end_timer.cancel()
 			bonus = self.handle_streak(nick)
 			self.add_score(nick,self.scored_words[word]+bonus)
+			self.comment_score(nick)
 			self.new_round()
 		elif word in self.possible_words:
 			score = self.scored_words[word]
@@ -242,6 +255,13 @@ class WHGame():
 					poss = "your" if nick == self.winningnick else (self.winningnick + "'s")
 					msg = chatter.STRF_NO_BEAT_OTHER().format(embolden(word),score,poss,embolden(self.winningword),self.winningword_score) + " " + self.time_warning()
 			self.output(msg)
+		elif cfg.ANAG_HINTS and self.round_name == "anag":
+			newindices = set([i for i in range(min(len(word),len(self.randword))) if word[i] == self.randword[i]])
+			allindices = newindices | self.hint_indices
+			if (newindices - self.hint_indices):
+				self.hint_indices = allindices
+				partial = "".join([self.randword[i] if i in sorted(allindices) else "?" for i in range(len(self.randword))])
+				self.output(chatter.STRF_ANAG_HINT().format(partial))
 			
 	def better_word(self):
 		# Find all words with a higher score minimally better than the winning one, and return a random one.
@@ -261,17 +281,18 @@ class WHGame():
 		self.winningnick = ''
 		
 		difficulty = 0 # Not yet implemented
-		randword = random.choice(self.words)
+		self.randword = random.choice(self.words)
+		self.hint_indices = set([])
 		
-		round_name = random.choice(self.rounds.keys())
-		round = self.rounds[round_name]
-		regex, announce, involved_letters = round(randword,difficulty)
+		self.round_name = random.choice(self.rounds.keys())
+		round = self.rounds[self.round_name]
+		regex, announce, involved_letters = round(self.randword,difficulty)
 		
 		self.possible_words = filter(regex.match,self.words)
 		if cfg.MODIFIER_CHANCE > 0 and random.randint(1,cfg.MODIFIER_CHANCE) == 1:
 			modifier_name = random.choice(self.modifiers.keys())
 			modifier = self.modifiers[modifier_name]
-			mod_regex, mod_announce = modifier(randword,round_name,involved_letters,difficulty)
+			mod_regex, mod_announce = modifier(self.randword,self.round_name,involved_letters,difficulty)
 			if mod_regex: self.possible_words = filter(mod_regex.match,self.possible_words)
 		else:
 			mod_announce = ""
@@ -299,17 +320,21 @@ class WHGame():
 			self.announce_puzzle(" ".join([announce,mod_announce]) if mod_announce else announce)
 	
 	def announce_puzzle(self, announce):
-		if self.round_num == self.num_rounds: round_announce = chatter.STR_ROUND_FINAL
+		if self.num_rounds == 0: round_announce = chatter.STR_ROUND_NUM_UNLIMITED.format(self.round_num)
+		elif self.round_num == self.num_rounds: round_announce = chatter.STR_ROUND_FINAL
 		else: round_announce = chatter.STR_ROUND_NUM.format(self.round_num,self.num_rounds)
 		self.output(" ".join([round_announce,announce,chatter.STR_INIT_TIME.format(self.round_time)]))
 	
 	def start_game(self):
 		self.playing = True
-		self.output(chatter.STR_GAME_START.format(self.num_rounds))
+		if self.num_rounds > 0: message = chatter.STR_GAME_START.format(self.num_rounds)
+		else: message = chatter.STR_GAME_START_UNLIMITED
+		self.output(message)
 		self.new_puzzle()
 		
 	def stop_game(self, nick=None): #Pass nick=None to end the game naturally.
 		if self.new_timer: self.new_timer.cancel()
 		if self.end_timer: self.end_timer.cancel()
 		if nick: self.output(chatter.STR_GAME_STOP.format(nick))
+		if self.num_rounds == 0: self.final_scores()
 		self.reset_vars()

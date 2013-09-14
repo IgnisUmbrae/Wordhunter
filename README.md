@@ -20,7 +20,7 @@ Features
 - Stunning two-tier gameplay! In the struggle for points and ultimate lexical supremacy, will you turn to length or to letter rarity?
 - Stunning educational value! Unless you manage the top-scorer, Wordhunter suggests the next best word for you, complete with definition!*
 - Stunning default bank of nine round formats and four modifiers with easy extensibility!
-- **Soon**: Stunning running commentary of multiplayer games!
+- Soon: Stunning running commentary of multiplayer games!
 
 *Most of the time, at least. Some words aren't defined yet.
 

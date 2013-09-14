@@ -7,22 +7,26 @@ import sys
 import cfg, chatter
 from game import WHGame
 
+
+
 # To do: 
 # - Admin tools
+# - Make bot reconnect automatically on disconnect, pausing and preserving game state
 # - Introduction/rules command
+# - Timed (single-letter?) hints for single-answer rounds (e.g. anag)
 # - Permit ties if the word submitted is different (optional extra togglable in cfg.py)
 # - Add ability to run on multiple servers/channels, sanity checking (must have at least one round type, cannot pick from empty modifier list, etc.)
-# - Add ability to play forever (specify n=0) --- in this case spill the top three on !whstop.
 # - Separate scoring code from game code
 # - Redo the -NESS(ES) removal script to be morphologically aware, so that words like LIONESS and WITNESS aren't unfairly excluded.
 # - Anagram-round-esque hint + definition -> word round
 # - Fix "1 seconds" text with absurdly low round (hence reset) times (1 or 2s)
-# - Scoring modifications: stop alerting (but keep scores of) people who haven't submitted words in N rounds (configurable); running commentary of changes in position in the top 3; announce top 3 at set intervals (configurable); command to check score; command to list top scores (within a certain stretch of time).
+# - Scoring modifications: stop alerting (but keep scores of) people who haven't submitted words in N rounds (configurable); announce top 3 at set intervals (configurable); command to check score; command to list top scores (within a certain stretch of time).
 # - Multiple modifiers per round? (Might lead to some nasty circular dependencies.)
 
 class WHBot(SingleServerIRCBot, WHGame):
 	valid_params = {"n" : "num_rounds", "t" : "round_time"}
 	default_params = {"n" : cfg.NUM_ROUNDS, "t" : cfg.ROUND_TIME}
+	min_values = {"n" : 0, "t" : 5}
 
 	def __init__(self, channel, key, nickname, server, port=6667):
 		SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
@@ -78,7 +82,7 @@ class WHBot(SingleServerIRCBot, WHGame):
 					if p[0] in WHBot.valid_params:
 						try:
 							value = int(p[1])
-							assert(value > 0)
+							assert(value >= WHBot.min_values[p[0]])
 						except Exception, e: value = WHBot.default_params[p[0]]
 						finally: setattr(self,WHBot.valid_params[p[0]],value)
 				self.set_reset_time()

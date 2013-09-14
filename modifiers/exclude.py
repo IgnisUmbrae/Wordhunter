@@ -12,7 +12,7 @@ def generate_modifier(word, round_name, involved_letters, difficulty):
 	if round_name in ["blockbeginend","blockend","blockmiddle","blockstart","ordered"]:
 		possible_letters = ALPHABET - set(word)
 	if not possible_letters:
-		regex = rNone
+		regex = None
 		str = ""
 	else:
 		# This picking ought to be done probabilistically according to letter frequency, but until tools.discrete_sample is rewritten this will have to do.
