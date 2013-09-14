@@ -7,8 +7,6 @@ import sys
 import cfg, chatter
 from game import WHGame
 
-
-
 # To do: 
 # - Admin tools
 # - Make bot reconnect automatically on disconnect, pausing and preserving game state
@@ -18,10 +16,10 @@ from game import WHGame
 # - Add ability to run on multiple servers/channels, sanity checking (must have at least one round type, cannot pick from empty modifier list, etc.)
 # - Separate scoring code from game code
 # - Redo the -NESS(ES) removal script to be morphologically aware, so that words like LIONESS and WITNESS aren't unfairly excluded.
-# - Anagram-round-esque hint + definition -> word round
 # - Fix "1 seconds" text with absurdly low round (hence reset) times (1 or 2s)
 # - Scoring modifications: stop alerting (but keep scores of) people who haven't submitted words in N rounds (configurable); announce top 3 at set intervals (configurable); command to check score; command to list top scores (within a certain stretch of time).
 # - Multiple modifiers per round? (Might lead to some nasty circular dependencies.)
+# - Announce found max as unique if it is (not just "one of the")
 
 class WHBot(SingleServerIRCBot, WHGame):
 	valid_params = {"n" : "num_rounds", "t" : "round_time"}
@@ -49,7 +47,7 @@ class WHBot(SingleServerIRCBot, WHGame):
 			if name not in getattr(cfg,"EXCLUDE_"+types.upper()):
 				try:
 					module = imp.load_source(name, f)
-					getattr(self,types)[name] = getattr(module,"generate_"+type)
+					getattr(self,types)[name] = getattr(module,type+"generator")()
 				except Exception, e:
 					print >> sys.stderr, "Error loading {} '{}': {}".format(type,name,e)
 				else:

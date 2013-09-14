@@ -16,10 +16,10 @@ MAX_IDLE_ROUNDS = 4
 STREAK_BONUS = 4
 # Number of seconds to wait between rounds.
 NEW_TIME = 10
-# Enable or disable dynamic anagram hints.
-ANAG_HINTS = False
+# Enable or disable dynamic hints for rounds which always have a single or very few possible answers (e.g. anag, def).
+DYNAMIC_HINTS = True
 # List of round formats that should not be loaded.
-EXCLUDE_ROUNDS = ["exclude"]#,"blockbeginend","blockend","blockmiddle","blockstart","onlyhas","ordered","subanag"]
+EXCLUDE_ROUNDS = ["exclude"]
 # List of modifiers that should not be loaded.
 EXCLUDE_MODIFIERS = []
 

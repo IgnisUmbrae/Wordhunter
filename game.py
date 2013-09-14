@@ -255,12 +255,12 @@ class WHGame():
 					poss = "your" if nick == self.winningnick else (self.winningnick + "'s")
 					msg = chatter.STRF_NO_BEAT_OTHER().format(embolden(word),score,poss,embolden(self.winningword),self.winningword_score) + " " + self.time_warning()
 			self.output(msg)
-		elif cfg.ANAG_HINTS and self.round_name == "anag":
-			newindices = set([i for i in range(min(len(word),len(self.randword))) if word[i] == self.randword[i]])
+		elif cfg.DYNAMIC_HINTS and self.round_name in ["anag","defn"]:
+			newindices = set([i for i in range(min(len(word),len(self.answord))) if word[i] == self.answord[i]])
 			allindices = newindices | self.hint_indices
 			if (newindices - self.hint_indices):
 				self.hint_indices = allindices
-				partial = "".join([self.randword[i] if i in sorted(allindices) else "?" for i in range(len(self.randword))])
+				partial = "".join([self.answord[i] if i in sorted(allindices) else "?" for i in range(len(self.answord))])
 				self.output(chatter.STRF_ANAG_HINT().format(partial))
 			
 	def better_word(self):
@@ -281,18 +281,19 @@ class WHGame():
 		self.winningnick = ''
 		
 		difficulty = 0 # Not yet implemented
-		self.randword = random.choice(self.words)
+		randword = random.choice(self.words)
 		self.hint_indices = set([])
 		
 		self.round_name = random.choice(self.rounds.keys())
-		round = self.rounds[self.round_name]
-		regex, announce, involved_letters = round(self.randword,difficulty)
+		round = self.rounds[self.round_name].generate
+		regex, announce, involved_letters = round(randword,difficulty)
+		self.answord = involved_letters
 		
 		self.possible_words = filter(regex.match,self.words)
 		if cfg.MODIFIER_CHANCE > 0 and random.randint(1,cfg.MODIFIER_CHANCE) == 1:
 			modifier_name = random.choice(self.modifiers.keys())
-			modifier = self.modifiers[modifier_name]
-			mod_regex, mod_announce = modifier(self.randword,self.round_name,involved_letters,difficulty)
+			modifier = self.modifiers[modifier_name].generate
+			mod_regex, mod_announce = modifier(randword,self.round_name,involved_letters,difficulty)
 			if mod_regex: self.possible_words = filter(mod_regex.match,self.possible_words)
 		else:
 			mod_announce = ""
