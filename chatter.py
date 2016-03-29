@@ -18,8 +18,8 @@ SYNS_SORT_OF = ["Not quite!","Sort of!"]
 
 SYNS_FIRST_POS = ["In first place it's {} with {} points!","{} is the champion with {} points!","{} came out on top with {} points!","{} takes gold with {} points!"]
 SYNS_JOINT_FIRST_POS = ["In first place it's {} with {} points apiece!","{} are the champions with {} points apiece!","{} came out on top with {} points each!","{} take gold with {} points each!"]
-SYNS_SECOND_POS = ["{} ran a close second with {}.","{} takes silver with {}.","{}'s {} points were only enough for second."]
-SYNS_JOINT_SECOND_POS = ["{} both ran a close second with {}.","{} take silver with {} points apiece.","{}'s {} points were only enough for second."]
+SYNS_SECOND_POS = ["{} came in second with {}.","{} takes silver with {}.","{}'s {} points were only enough for second."]
+SYNS_JOINT_SECOND_POS = ["{} both came in second with {}.","{} take silver with {} points apiece.","{}'s {} points were only enough for second."]
 SYNS_THIRD_POS = ["{} is bringing up the rear with {}.","{} makes do with bronze and {}.","{} managed a mere third with {}."]
 SYNS_JOINT_THIRD_POS = ["{} are bringing up the rear with {} points each.","{} make do with bronze and {}.","{} managed a mere third with {} points apiece."]
 
@@ -47,7 +47,8 @@ STR_SECS_LEFT = "{} seconds left!"
 STR_TIME_RESET = "Timer reset to {} seconds!"
 STR_GAME_OVER = "Game over! Let's look at the scores..."
 def STRF_ANAG_HINT(): return " ".join([random.choice(SYNS_SORT_OF),"Hint:","{}"])
-STR_GOT_MAX = "Congratulations, {}! You found one of the highest-scoring words, {}, worth {} points!"
+STR_GOT_MAX = "Congratulations, {}! You found one of the {} highest-scoring words, {}, worth {} points!"
+STR_GOT_MAX_UNIQUE = "Congratulations, {}! You found the unique highest-scoring word, {}, worth {} points!"
 def STRF_GOOD_WORD(): return " ".join([random.choice(SYNS_YES),"{} fits perfectly for {} points!"])
 def STRF_BEAT_SELF(): return " ".join([random.choice(SYNS_YES),"{} fits even better for {} points!"])
 def STRF_BEAT_OTHER(): return " ".join([random.choice(SYNS_YES),"{} ({} points)",random.choice(SYNS_DESTROYS),"{}'s {} ({} points)!"])

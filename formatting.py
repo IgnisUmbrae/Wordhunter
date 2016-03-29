@@ -1,5 +1,7 @@
 def embolden(str):
-	return str.upper()
+	return ""+str+""
+	#return str
+	#return str.upper()
 	#return "" + str.upper() + ""
 	
 def listtostr(list, conj="and"):

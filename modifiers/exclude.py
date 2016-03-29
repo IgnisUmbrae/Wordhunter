@@ -4,7 +4,7 @@ import random
 from constants import ALPHABET
 from formatting import embolden, listtostr
 
-STR_ANNOUNCE_MOD = "Your word must exclude {}!"
+STR_ANNOUNCE_MOD = "Your word must "+embolden("exclude")+" {}!"
 
 class modifiergenerator():
 	def __init__(self):
@@ -15,6 +15,9 @@ class modifiergenerator():
 		possible_letters = None
 		if round_name in ["blockbeginend","blockend","blockmiddle","blockstart","ordered"]:
 			possible_letters = ALPHABET - set(word)
+		elif round_name in ["boggle"]:
+			possible_letters = involved_letters - set(["@"])
+		else: possible_letters = None
 		if not possible_letters:
 			regex = None
 			str = ""

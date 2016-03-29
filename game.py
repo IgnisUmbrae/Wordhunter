@@ -59,7 +59,7 @@ class WHGame():
 	def end_round(self,new_round=True):
 		betterword = self.better_word()
 		if self.winningword_score > 0:
-			msg = chatter.STR_WINNING_WORD.format(self.winningnick, embolden(self.winningword), self.winningword_score)
+			msg = chatter.STR_WINNING_WORD.format(self.winningnick, self.winningword, self.winningword_score)
 			if betterword[1] == self.best_score: msg2 = chatter.STR_ALSO_MAX.format(*betterword)
 			else: msg2 = chatter.STR_ALSO_WORD.format(*betterword)
 			streaker = self.winningnick
@@ -222,10 +222,14 @@ class WHGame():
 	def submit_word(self, word, nick):
 		if nick not in self.newscores: self.newscores[nick] = 0 #Mark the submitter as having submitted a word (for scoring purposes).
 		word = re.sub('[^a-zA-Z]','',word).upper()
-		if re.match('NESS(ES)?$',word):
+		if re.match('NESS(?:ES)?$',word):
 			self.output(chatter.NO_NESSES.format(nick))
 		elif word in self.best_words:
-			self.output(chatter.STR_GOT_MAX.format(nick,embolden(word),self.scored_words[word]))
+			if len(self.best_words) > 1:
+				maxmsg = chatter.STR_GOT_MAX.format(nick,len(self.best_words),embolden(word),self.scored_words[word])
+			else:
+				maxmsg = chatter.STR_GOT_MAX_UNIQUE.format(nick,embolden(word),self.scored_words[word])
+			self.output(maxmsg)
 			self.define_word(word)
 			self.end_timer.cancel()
 			bonus = self.handle_streak(nick)
@@ -236,16 +240,16 @@ class WHGame():
 			score = self.scored_words[word]
 			if score > self.winningword_score:
 				if self.winningword_score == 0:
-					msg = chatter.STRF_GOOD_WORD().format(embolden(word),score)
+					msg = chatter.STRF_GOOD_WORD().format(word,score)
 					if self.time_left() < self.reset_time:
 						self.reset_end_timer()
 						msg += " " + chatter.STR_TIME_RESET.format(self.reset_time)
 					else:
 						msg += " " + self.time_warning()
 				elif nick == self.winningnick:
-					msg = chatter.STRF_BEAT_SELF().format(embolden(word),score) + " " + self.time_warning()
+					msg = chatter.STRF_BEAT_SELF().format(word,score) + " " + self.time_warning()
 				else:
-					msg = chatter.STRF_BEAT_OTHER().format(embolden(word),score,self.winningnick,embolden(self.winningword),self.winningword_score) + " " + self.time_warning()
+					msg = chatter.STRF_BEAT_OTHER().format(word,score,self.winningnick,self.winningword,self.winningword_score) + " " + self.time_warning()
 				self.winningword = word
 				self.winningword_score = score
 				self.winningnick = nick
@@ -253,7 +257,7 @@ class WHGame():
 				if word == self.winningword: msg = chatter.STR_NO_BEAT_SELF.format(nick)
 				else:
 					poss = "your" if nick == self.winningnick else (self.winningnick + "'s")
-					msg = chatter.STRF_NO_BEAT_OTHER().format(embolden(word),score,poss,embolden(self.winningword),self.winningword_score) + " " + self.time_warning()
+					msg = chatter.STRF_NO_BEAT_OTHER().format(word,score,poss,self.winningword,self.winningword_score) + " " + self.time_warning()
 			self.output(msg)
 		elif cfg.DYNAMIC_HINTS and self.round_name in ["anag","defn"]:
 			newindices = set([i for i in range(min(len(word),len(self.answord))) if word[i] == self.answord[i]])
@@ -281,15 +285,16 @@ class WHGame():
 		self.winningnick = ''
 		
 		difficulty = 0 # Not yet implemented
-		randword = random.choice(self.words)
 		self.hint_indices = set([])
+		randword = random.choice(self.words)
 		
+		#self.round_name = "boggle"
 		self.round_name = random.choice(self.rounds.keys())
 		round = self.rounds[self.round_name].generate
-		regex, announce, involved_letters = round(randword,difficulty)
+		validmatch, announce, involved_letters = round(randword,self.words,difficulty)
 		self.answord = involved_letters
 		
-		self.possible_words = filter(regex.match,self.words)
+		self.possible_words = filter(validmatch,self.words)
 		if cfg.MODIFIER_CHANCE > 0 and random.randint(1,cfg.MODIFIER_CHANCE) == 1:
 			modifier_name = random.choice(self.modifiers.keys())
 			modifier = self.modifiers[modifier_name].generate
@@ -300,16 +305,16 @@ class WHGame():
 			mod_regex = None
 		
 		# This isn't entirely satisfactory, but it's the obvious way to ensure we always have a soluble puzzle.
-		# Casual observation suggests that insoluble puzzles are very rare, so this shouldn't be a problem.
+		# Casual observation suggests that insoluble puzzles are uncommon, so this shouldn't be a problem.
 		if len(self.possible_words) == 0:
 			print >> sys.stderr, "Puzzle not soluble! Generating another."
 			self.new_puzzle()
 		else:
 			self.round_num += 1
 			if mod_regex:
-				self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if (regex.match(k) and mod_regex.match(k)))
+				self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if (validmatch(k) and mod_regex.match(k)))
 			else:
-				self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if regex.match(k))
+				self.possible_scored_words = dict((k,v) for k, v in self.scored_words.items() if validmatch(k))
 			self.sorted_possible_scored_words = sorted(self.possible_scored_words.iteritems(), key=itemgetter(1), reverse=True)
 			self.best_score = self.sorted_possible_scored_words[0][1]
 			self.best_words = [k for k, v in self.possible_scored_words.items() if v == self.best_score]
@@ -318,13 +323,23 @@ class WHGame():
 			
 			self.guessing = True
 			
-			self.announce_puzzle(" ".join([announce,mod_announce]) if mod_announce else announce)
-	
-	def announce_puzzle(self, announce):
+			if not isinstance(announce, list):
+				self.announce_text = " ".join([announce,mod_announce]) if mod_announce else announce
+			else:
+				self.announce_text = [announce[0] + " " + mod_announce] + announce[1:] if mod_announce else announce
+			self.announce_puzzle(reannounce=False)
+			
+	def announce_puzzle(self,reannounce=False):
+		time_text = self.time_warning() if reannounce else chatter.STR_INIT_TIME.format(self.round_time)
 		if self.num_rounds == 0: round_announce = chatter.STR_ROUND_NUM_UNLIMITED.format(self.round_num)
 		elif self.round_num == self.num_rounds: round_announce = chatter.STR_ROUND_FINAL
 		else: round_announce = chatter.STR_ROUND_NUM.format(self.round_num,self.num_rounds)
-		self.output(" ".join([round_announce,announce,chatter.STR_INIT_TIME.format(self.round_time)]))
+		if not isinstance(self.announce_text, list):
+			self.output(" ".join([round_announce,self.announce_text,time_text]))
+		else:
+			self.output(" ".join([round_announce,self.announce_text[0],time_text]))
+			for x in self.announce_text[1:]: self.output(x)
+			
 	
 	def start_game(self):
 		self.playing = True

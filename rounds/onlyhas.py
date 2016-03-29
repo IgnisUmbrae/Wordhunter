@@ -12,7 +12,7 @@ class roundgenerator():
 	def __init__(self):
 		pass
 
-	def generate(self,word, difficulty):
+	def generate(self, word, words, difficulty):
 		#num_letters = random.randint(5,8)
 		#num_vowels = min(random.randint(2,3),int(round(num_letters/2.5)))
 		#letters = discrete_sample(constants.VOWEL_FREQS,num_vowels)+discrete_sample(constants.CONS_FREQS,num_letters-num_vowels)
@@ -30,4 +30,4 @@ class roundgenerator():
 		regex = re.compile("^["+"".join(letters)+"]*$")
 		str = STR_ANNOUNCE.format(listtostr(map(embolden,sorted(letters)),conj="or"))
 		involved_letters = "".join(letters)
-		return regex, str, involved_letters
+		return regex.match, str, involved_letters

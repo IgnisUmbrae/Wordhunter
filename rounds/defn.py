@@ -12,7 +12,7 @@ class roundgenerator():
 		with open(os.path.join('data','WN-nouns-defs.txt'),'r') as f:
 			self.wn_defs = map(lambda x: x.strip(), f.readlines())
 
-	def generate(self, word, difficulty):
+	def generate(self, word, words, difficulty):
 		r = random.randint(0,len(self.wn_words))
 		wnword, defn = self.wn_words[r].upper(), self.wn_defs[r]
 		hintamount = max(int(round(len(wnword)/4)),1)
@@ -21,4 +21,4 @@ class roundgenerator():
 		str = STR_ANNOUNCE.format(defn,embolden(hint))
 		involved_letters = wnword
 		regex = re.compile("".join(["^",wnword,"$"]))
-		return regex, str, involved_letters
+		return regex.match, str, involved_letters

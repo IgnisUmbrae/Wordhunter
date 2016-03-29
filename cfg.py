@@ -16,7 +16,7 @@ MAX_IDLE_ROUNDS = 4
 STREAK_BONUS = 4
 # Number of seconds to wait between rounds.
 NEW_TIME = 10
-# Enable or disable dynamic hints for rounds which always have a single or very few possible answers (e.g. anag, def).
+# Enable or disable dynamic hints for rounds which always have a single or very few possible answers (e.g. anag, defn).
 DYNAMIC_HINTS = True
 # List of round formats that should not be loaded.
 EXCLUDE_ROUNDS = ["exclude"]
@@ -28,8 +28,9 @@ COMMAND_PREFIX = "!"
 # Specific names of various commands.
 START_COMMAND = "whstart"
 STOP_COMMAND = "whstop"
+REPEAT_COMMAND = "repeat"
 
 # Self-explanatory IRC-specific settings. KEY should be the empty string if the channel has none.
-SERVER, PORT = 'chat.freenode.net', 6667
+SERVER, PORT = 'irc.freenode.net', 6667
 CHANNEL, KEY = '##logophiles', ''
 NICK = 'Logophile'

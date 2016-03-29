@@ -8,18 +8,27 @@ import cfg, chatter
 from game import WHGame
 
 # To do: 
+# - !repeat to repeat preamble
+# - Match-play feature
+# - Fix text when someone ties first or second. Seems to happen when someone comes from outside the top 3.
+# - Bonus cube in Boggle round
+# - Different text for people newly entering the top 3
+# - Optional bonus points for getting a maximum (not for anag, defn or rounds with similarly few valid words)
 # - Admin tools
 # - Make bot reconnect automatically on disconnect, pausing and preserving game state
 # - Introduction/rules command
+# - Begin dynamic hints with the initially-generated hint
+# - Global hint amount adjustment
+# - Optional playoffs (first to win a single round) to decide ties, or use other criteria (to be decided)
 # - Timed (single-letter?) hints for single-answer rounds (e.g. anag)
 # - Permit ties if the word submitted is different (optional extra togglable in cfg.py)
 # - Add ability to run on multiple servers/channels, sanity checking (must have at least one round type, cannot pick from empty modifier list, etc.)
+# - Add special flags to rounds and modifiers (so they can e.g. opt into dynamic partial hinting)
 # - Separate scoring code from game code
 # - Redo the -NESS(ES) removal script to be morphologically aware, so that words like LIONESS and WITNESS aren't unfairly excluded.
 # - Fix "1 seconds" text with absurdly low round (hence reset) times (1 or 2s)
 # - Scoring modifications: stop alerting (but keep scores of) people who haven't submitted words in N rounds (configurable); announce top 3 at set intervals (configurable); command to check score; command to list top scores (within a certain stretch of time).
-# - Multiple modifiers per round? (Might lead to some nasty circular dependencies.)
-# - Announce found max as unique if it is (not just "one of the")
+# - Missing vowels round (in the style of Only Connect)
 
 class WHBot(SingleServerIRCBot, WHGame):
 	valid_params = {"n" : "num_rounds", "t" : "round_time"}
@@ -86,6 +95,8 @@ class WHBot(SingleServerIRCBot, WHGame):
 				self.set_reset_time()
 				self.start_game()
 			else: self.output(chatter.STR_PLAYING.format(nick))
+		elif command == cfg.REPEAT_COMMAND:
+			if self.playing: self.announce_puzzle(reannounce=True)
 		elif command == cfg.STOP_COMMAND:
 			if self.playing: self.stop_game(nick)
 			else: self.output(chatter.STR_NOT_PLAYING.format(nick))

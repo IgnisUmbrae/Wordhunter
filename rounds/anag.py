@@ -18,11 +18,11 @@ class roundgenerator():
 		regex += "[" + str("".join(letters)) + "]*)$"
 		return re.compile(regex)
 
-	def generate(self, word, difficulty):
+	def generate(self, word, words, difficulty):
 		anag = "".join(random.sample(word,len(word)))
 		hintamount = max(int(round(len(word)/4)),1)
 		r = random.randint(0,hintamount)
 		hint = word[:r]+"*"*(len(word)-hintamount)+(word[-1*(hintamount-r):] if r != hintamount else "")
 		str = STR_ANNOUNCE.format(embolden(anag),embolden(hint))
 		involved_letters = word
-		return self.anag_regex(word), str, involved_letters
+		return self.anag_regex(word).match, str, involved_letters

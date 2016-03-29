@@ -3,7 +3,7 @@ import random
 
 from formatting import embolden, listtostr
 
-STR_ANNOUNCE_MOD = "Your word must include {}!"
+STR_ANNOUNCE_MOD = "Your word "+embolden("must include")+" {}!"
 
 class modifiergenerator():
 	def __init__(self):
@@ -14,8 +14,10 @@ class modifiergenerator():
 		involved_letters = set(involved_letters)
 		if round_name in ["blockbeginend","blockend","blockmiddle","blockstart","ordered","onlyhas"]:
 			possible_letters = set(word) - involved_letters
-		elif round_name == "subanag":
+		elif round_name in ["subanag"]:
 			possible_letters = involved_letters
+		elif round_name in ["boggle"]:
+			possible_letters = involved_letters - set(["@"])
 		else: possible_letters = None
 		if possible_letters:
 			letters = random.sample(possible_letters,num_letters) if num_letters < len(possible_letters) else list(possible_letters)
